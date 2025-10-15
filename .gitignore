@@ -8,21 +8,20 @@
 
 # Next.js
 /.next/
-/out/
-
-# Production
-/build
+out/
+build/
 
 # Misc
 .DS_Store
 *.pem
 
-# Debug
+# Debug logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
 # Local env files
+.env
 .env*.local
 
 # Vercel
@@ -31,3 +30,34 @@ yarn-error.log*
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+# Logs
+logs
+*.log
+
+# Diagnostic reports
+report.*.json
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# Cache directories
+.cache
+.parcel-cache
+
+# Tooling directories
+bower_components
+dist
+temp
+
+# VSCode
+.vscode-test
