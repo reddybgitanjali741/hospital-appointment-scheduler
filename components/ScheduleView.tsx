@@ -1,50 +1,22 @@
-/**
- * ScheduleView Component
- *
- * Main component that orchestrates the schedule display.
- * This component should compose smaller components together.
- *
- * TODO for candidates:
- * 1. Create the component structure (header, controls, calendar)
- * 2. Compose DoctorSelector, DayView, WeekView together
- * 3. Handle view switching (day vs week)
- * 4. Manage state or use the useAppointments hook
- * 5. Think about component composition and reusability
- */
-
 'use client';
 
-import { useState } from 'react';
-import type { CalendarView } from '@/types';
-
-// TODO: Import your components
-// import { DoctorSelector } from './DoctorSelector';
-// import { DayView } from './DayView';
-// import { WeekView } from './WeekView';
+import { useMemo } from 'react';
+import type { Appointment, Doctor, CalendarView } from '@/types';
+import DoctorSelector from './DoctorSelector';
+import DayView from './DayView';
+import WeekView from './WeekView';
+import { MOCK_DOCTORS, MOCK_APPOINTMENTS } from '@/data/mockData';
 
 interface ScheduleViewProps {
   selectedDoctorId: string;
   selectedDate: Date;
   view: CalendarView;
-  onDoctorChange: (doctorId: string) => void;
+  onDoctorChange: (id: string) => void;
   onDateChange: (date: Date) => void;
   onViewChange: (view: CalendarView) => void;
 }
 
-/**
- * ScheduleView Component
- *
- * This is the main container component for the schedule interface.
- *
- * TODO: Implement this component
- *
- * Consider:
- * - How to structure the layout (header, controls, calendar)
- * - How to compose smaller components
- * - How to pass data down to child components
- * - How to handle user interactions (view switching, date changes)
- */
-export function ScheduleView({
+export default function ScheduleView({
   selectedDoctorId,
   selectedDate,
   view,
@@ -52,77 +24,94 @@ export function ScheduleView({
   onDateChange,
   onViewChange,
 }: ScheduleViewProps) {
-  // TODO: Use the useAppointments hook to fetch data
-  // const { appointments, doctor, loading, error } = useAppointments({
-  //   doctorId: selectedDoctorId,
-  //   date: selectedDate,
-  // });
+  const doctors: Doctor[] = useMemo(() => MOCK_DOCTORS, []);
+  const appointments: Appointment[] = useMemo(() => MOCK_APPOINTMENTS, []);
+
+  const selectedDoctor = doctors.find(d => d.id === selectedDoctorId);
+
+  const doctorAppointments = useMemo(() => {
+    if (!selectedDoctor) return [];
+    return appointments.filter(a => a.doctorId === selectedDoctor.id);
+  }, [appointments, selectedDoctor]);
 
   return (
-    <div className="bg-white rounded-lg shadow-lg">
-      {/* TODO: Implement the component structure */}
-
-      {/* Header with doctor info and controls */}
-      <div className="border-b border-gray-200 p-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">Doctor Schedule</h2>
+    <div className="bg-white rounded-lg shadow-lg p-6">
+      {/* Header */}
+      <div className="border-b border-gray-200 pb-4 mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Doctor Schedule</h2>
+          {selectedDoctor ? (
             <p className="text-sm text-gray-600 mt-1">
-              TODO: Display doctor name and specialty
+              {selectedDoctor.name} — {selectedDoctor.specialty}
             </p>
+          ) : (
+            <p className="text-sm text-gray-600 mt-1">
+              Select a doctor to view appointments
+            </p>
+          )}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-4">
+          {/* Doctor Selector */}
+          <div className="min-w-[220px]">
+            <DoctorSelector
+              doctors={doctors}
+              selectedDoctorId={selectedDoctorId}
+              onChange={onDoctorChange}
+            />
           </div>
 
-          <div className="flex gap-4">
-            {/* TODO: Add DoctorSelector component */}
-            <div className="text-sm text-gray-500">Doctor Selector</div>
+          {/* Date Picker */}
+          <div>
+            <input
+              type="date"
+              value={selectedDate.toISOString().split('T')[0]}
+              onChange={(e) => onDateChange(new Date(e.target.value))}
+              className="border border-gray-300 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
 
-            {/* TODO: Add date picker */}
-            <div className="text-sm text-gray-500">Date Picker</div>
-
-            {/* TODO: Add view toggle buttons (Day/Week) */}
-            <div className="flex gap-2">
-              <button
-                className="px-4 py-2 text-sm bg-blue-600 text-white rounded"
-                onClick={() => onViewChange('day')}
-              >
-                Day
-              </button>
-              <button
-                className="px-4 py-2 text-sm bg-gray-200 text-gray-700 rounded"
-                onClick={() => onViewChange('week')}
-              >
-                Week
-              </button>
-            </div>
+          {/* View Toggle */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => onViewChange('day')}
+              className={`px-4 py-2 text-sm rounded ${
+                view === 'day' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'
+              }`}
+            >
+              Day
+            </button>
+            <button
+              onClick={() => onViewChange('week')}
+              className={`px-4 py-2 text-sm rounded ${
+                view === 'week' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'
+              }`}
+            >
+              Week
+            </button>
           </div>
         </div>
       </div>
 
       {/* Calendar View */}
-      <div className="p-6">
-        {/* TODO: Conditionally render DayView or WeekView based on view prop */}
-        <div className="text-center text-gray-500 py-12">
-          <p>Calendar View Goes Here</p>
-          <p className="text-sm mt-2">
-            Implement DayView and WeekView components and render based on selected view
-          </p>
+      {selectedDoctor && (
+        <div>
+          {view === 'day' && (
+            <DayView
+              doctor={selectedDoctor}
+              appointments={doctorAppointments}
+              date={selectedDate}
+            />
+          )}
+          {view === 'week' && (
+            <WeekView
+              doctor={selectedDoctor}
+              appointments={doctorAppointments}
+              date={selectedDate}
+            />
+          )}
         </div>
-
-        {/* TODO: Uncomment when components are ready */}
-        {/* {view === 'day' ? (
-          <DayView
-            appointments={appointments}
-            doctor={doctor}
-            date={selectedDate}
-          />
-        ) : (
-          <WeekView
-            appointments={appointments}
-            doctor={doctor}
-            weekStartDate={getWeekStart(selectedDate)}
-          />
-        )} */}
-      </div>
+      )}
     </div>
   );
 }
